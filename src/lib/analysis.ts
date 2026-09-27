@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
 import { z } from 'zod';
 import { addAudit, getProject, sqlConnection } from './db';
+import { savedAiAnalysis } from './ai-replay';
 import { supportedQuote } from './rules';
 import type { ClaimKind, RelationshipType } from './types';
 
@@ -16,7 +17,11 @@ const modelOutput=z.object({
 export async function analyzeProject(projectId:string) {
   const current=getProject(projectId);
   if (!current) throw new Error('Unknown project');
-  if (!process.env.OPENAI_API_KEY) return {mode:'rules-only' as const,analysis:{summary:'Rules-only mode. Deterministic claim extraction and source-linked relationship proposals are loaded from the permit snapshot; no live model ran.',proposedClaims:current.claims.filter(x=>x.reviewStatus==='proposed').length,proposedRelationships:current.relationships.filter(x=>x.status==='proposed').length,warnings:['Occupancy evidence still requires human review.']},project:current};
+  if (!process.env.OPENAI_API_KEY) {
+    const replay=savedAiAnalysis(current);
+    if (replay) return {mode:'saved-ai-replay' as const,analysis:{summary:replay.summary,model:replay.model,analyzedAt:replay.analyzedAt,findings:replay.findings,limits:replay.limits,warnings:['Saved AI analysis; no model was called during this request. Each quote was checked against the selected source records. Interpretations require reviewer confirmation.']},project:current};
+    return {mode:'rules-only' as const,analysis:{summary:'Rules-only mode. Deterministic claim extraction and source-linked relationship proposals are loaded from the permit snapshot; no live model ran.',proposedClaims:current.claims.filter(x=>x.reviewStatus==='proposed').length,proposedRelationships:current.relationships.filter(x=>x.status==='proposed').length,warnings:['Occupancy evidence still requires human review.']},project:current};
+  }
   const client=new OpenAI({apiKey:process.env.OPENAI_API_KEY});
   const response=await client.chat.completions.create({
     model:process.env.OPENAI_MODEL||'gpt-4.1-mini',temperature:0,

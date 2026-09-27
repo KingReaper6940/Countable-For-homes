@@ -1,0 +1,40 @@
+{
+  "projectId": "development-10c",
+  "model": "GPT-6 Sol (Codex subagent)",
+  "analyzedAt": "2026-09-27",
+  "snapshotSha256": "58b5bed322f902a371cf83b4d65d803ed04fc81eb3a51dbc64e7e41e2a694858",
+  "summary": "The selected Bedford descriptions contain overlapping unit claims and an unresolved temporary-use lead. They do not establish how many homes became legally available for occupancy.",
+  "findings": [
+    {
+      "permitId": "BDA-2024-03554",
+      "quote": "70 NEW UNITS IN 8 NEW BUILDINGS",
+      "interpretation": "The parent application describes the phase-wide plan, not 70 verified completed homes.",
+      "reviewQuestion": "Which of the eight buildings have separate occupancy evidence?"
+    },
+    {
+      "permitId": "BP-2024-13992",
+      "quote": "BUILDING NO A3 WITH 9 APARTMENTS",
+      "interpretation": "The A3 building permit describes nine apartments within one named building.",
+      "reviewQuestion": "Is A3 part of the parent total, and what document establishes its usable date?"
+    },
+    {
+      "permitId": "SSP-2025-03861",
+      "quote": "IN RELATION TO WORK PERFORMED UNDER BP-2024-13992",
+      "interpretation": "The sprinkler description explicitly names A3's building permit and repeats its nine apartments. This is a relationship proposal, not another nine homes.",
+      "reviewQuestion": "Does a reviewer confirm the explicit link and its building identity?"
+    },
+    {
+      "permitId": "BDA-2026-05107",
+      "quote": "PENDING COMPLETING OF PERMIT BP-2024-13992, TEMPORARY USE OF 3 STORY APARTMENT BUILDING",
+      "interpretation": "A temporary-use application points back to A3 while describing work under its building permit as pending.",
+      "reviewQuestion": "What original authorization, conditions and effective date, if any, apply to A3?"
+    },
+    {
+      "permitId": "BP-2024-13991",
+      "quote": "BUILDING NUMBER A4 WITH 9 APARTMENTS",
+      "interpretation": "A4 is separately labeled from A3 despite sharing the development parcel.",
+      "reviewQuestion": "Can separate original documents establish the status of A4 without merging it into A3?"
+    }
+  ],
+  "limits": "This is a saved model analysis of five descriptions from the selected public snapshot. A human selected and edited the displayed findings for clarity, and each quoted passage is checked against its source when replayed. The analysis is not a live model run or an approval."
+}

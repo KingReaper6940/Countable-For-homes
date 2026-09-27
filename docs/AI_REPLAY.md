@@ -1,0 +1,7 @@
+# Saved AI analysis for the local demo
+
+The Bedford workspace can replay a one-time GPT-6 Sol analysis generated through a Codex subagent on September 27, 2026. The model was given only [`data/permits.snapshot.json`](../data/permits.snapshot.json) and [`data/source-manifest.json`](../data/source-manifest.json), with this task: analyze the real Bedford descriptions, return exact quoted substrings, explain possible relationships and uncertainties, and never infer completion from permit status. It did not read the application's seeded claims, relationships, or evaluation labels. The selected output is in [`data/ai-replay.json`](../data/ai-replay.json).
+
+A person shortened and edited the displayed interpretations for clarity. The replay validates its snapshot hash and every displayed quote against the current project source text before returning it. A click in the app highlights the quote in the original description. Interpretations remain proposals; the saved replay does not make reviewer decisions or add units to the ledger.
+
+This is **not a live model call** and **not an independent accuracy evaluation**. Without an API key, other cases use deterministic extraction and preloaded relationship proposals. With a server-side `OPENAI_API_KEY`, the app can request fresh structured proposals using the OpenAI SDK. That live path has not been evaluated on a held-out dataset; the small checks in [`docs/EVALUATION.md`](EVALUATION.md) measure the deterministic fixture behavior only.
