@@ -32,23 +32,11 @@ This refresh replaces the snapshot and can change descriptions or statuses. Revi
 
 The queue at `/app` opens five cases built from selected real permit records, including three extra unresolved review examples. The public `/methodology` page explains the counting rules and selected-cohort limits. The evidence workspace keeps source claims, proposed relationships, reviewer decisions, and potential housing events separate. Permit status and issue dates do not establish an occupancy date. Bedford remains unresolved; the South 20th Street case has two original City certificates available for a reviewer to compare and approve a supported +1 dwelling event. The ledger lists additions only when identity, unit increment, residential scope, date, evidence, and a human decision support an event. Unknown remains unknown.
 
-See [counting rules](docs/COUNTING_RULES.md) for the decision policy, [labeled evaluation](docs/EVALUATION.md) for measured extraction results and limits, [source selection notes](docs/RESOURCE_NOTES.md) for catalog resources and caveats, and [demo script](docs/DEMO.md) for a guided walkthrough. The interface offers CSV export, an evidence report, and an audit trail. Reversals create new audit entries.
+See [counting rules](docs/COUNTING_RULES.md) for the decision policy, [labeled evaluation](docs/EVALUATION.md) for measured extraction results and limits, [source selection notes](docs/RESOURCE_NOTES.md) for catalog resources and caveats, [recording guide](docs/RECORDING.md) for a 3–5 minute OBS take, and [demo walkthrough](docs/DEMO.md) for every review step. The interface offers CSV export, an evidence report, and an audit trail. Reversals create new audit entries.
 
-## Two to three minute presenter script
+## Presenting the prototype
 
-Use the optional **Present** control or scroll normally. Arrow keys advance sections while Present is on; Escape exits it. Every section also remains available through ordinary scrolling.
-
-| Time | Screen / click | Say |
-| --- | --- | --- |
-| 0:00–0:20 | Hero. Click the A3 sprinkler card to show its source text. | “How many new homes are ready for people to use? Here are real Pittsburgh records for Bedford Phase 2A. Several forms mention the same apartments, so a permit number cannot simply become a housing count.” |
-| 0:20–0:45 | Start the story; show the crossed-out 88, then click **Separate the facts**. | “The development application describes 70 units across eight buildings. A3's building permit describes nine of them. Its sprinkler permit repeats those nine and names the building permit. Adding 70, nine and nine would falsely claim 88 finished homes.” |
-| 0:45–1:10 | Method. Select **Check what status means**, then **Look for move-in proof**. | “Countable links related forms and highlights the exact words. Another real record is marked Completed but says work under A3 is still pending. We need a separate occupancy document to know when homes may legally be used. This snapshot has none.” |
-| 1:10–1:25 | Honest result. | “So the verified addition is unresolved. That is not a claim that zero homes were built. It means these particular records cannot prove the answer yet.” |
-| 1:25–1:45 | Why this exists. | “Pittsburgh's City Controller reported the same problem: duplicate permits and mismatched unit counts had to be reconciled by hand. The office recommended an ongoing public view of completed homes. This validates the data problem, not customer adoption.” |
-| 1:45–2:00 | Why now. | “The City must publish an auditable construction dashboard by the end of 2026. Countable is an independent, limited prototype for the evidence work behind that kind of answer.” |
-| 2:00–2:15 | AI / reviewer / rules. | “AI can suggest that the sprinkler and building permits belong together. A reviewer checks the originals and looks for occupancy proof. Code will not mark A3 verified without the document, date and human decision.” |
-| 2:15–2:40 | Source trail. | “A catalog of hackathon data sources points us to OneStopPGH for current case documents. It is a search lead, not proof that Bedford's occupancy document exists there. The City also has a separate occupancy search.” |
-| 2:40–3:00 | Open the Bedford case and A3 source text. | “The working app holds these public records, their proposed links and the unanswered questions. You can inspect the original words yourself. The count stays unresolved until sufficient original evidence is reviewed.” |
+The [OBS recording guide](docs/RECORDING.md) gives a four-minute path from the pitch to a real reviewer decision and the ledger. The landing page's optional **Present** control advances sections with the arrow keys; Escape exits it. Ordinary scrolling works too. Use a new local database filename for each clean take so the reviewer actions start in their pending state.
 
 ### Questions judges may ask
 
