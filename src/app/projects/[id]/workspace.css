@@ -7,3 +7,10 @@
 .showcase-source-links{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;margin-top:12px}
 .showcase-source-links .showcase-sandbox-link{margin-left:0}
 .showcase-source-links .tiny{flex-basis:100%}
+.showcase-review-result{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:15px;padding:13px 15px;border:1px solid #d7c69d;border-radius:6px;background:#fffaf0}
+.showcase-review-result.approved{border-color:#9bc9ac;background:#eaf7ec}
+.showcase-review-result.rejected{border-color:#d9b7a8;background:#fff4ee}
+.showcase-review-result strong{font-size:13px;color:var(--ink)}
+.showcase-review-result p{margin:4px 0 0;font-size:12px;line-height:1.45;color:#526155}
+.showcase-review-result .btn{flex-shrink:0}
+@media(max-width:650px){.showcase-review-result{align-items:flex-start;flex-direction:column}}
