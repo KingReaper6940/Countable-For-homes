@@ -7,10 +7,9 @@ import { readFileSync } from 'node:fs';
 const fixture=(name:string)=>readFileSync(join(process.cwd(),'tests','fixtures',name));
 async function upload(bytes:Buffer,label:string,manualText='') {
   const form=new FormData();
-  form.set('projectId','development-10c-sandbox');
+  form.set('projectId','development-10c');
   form.set('label',label);
   form.set('sourceRef',`${label}.pdf`);
-  form.set('synthetic','true');
   form.set('type','occupancy');
   form.set('file',new File([new Uint8Array(bytes)],`${label}.pdf`,{type:'application/pdf'}));
   if (manualText) { form.set('text',manualText); form.set('pageRef','manual passage 2'); }
@@ -22,21 +21,21 @@ describe('PDF evidence ingestion',()=>{
   it('extracts text with a page reference and retains the original',async()=>{
     vi.resetModules();
     process.env.COUNTABLE_DB_PATH=join(tmpdir(),`countable-pdf-${randomUUID()}.db`);
-    const response=await upload(fixture('synthetic-occupancy-text.pdf'),'text-example');
+    const response=await upload(fixture('pdf-with-text.pdf'),'text-example');
     expect(response.status).toBe(200);
     const data=await response.json();
-    expect(data.evidence.text).toContain('Synthetic A3 occupancy nine apartments');
+    expect(data.evidence.text).toContain('PDF text extraction fixture');
     expect(data.evidence.pageRef).toContain('1');
     expect(data.evidence.originalFileUrl).toMatch(/^\/api\/evidence\/.+\/file$/);
     const {GET}=await import('./[id]/file/route');
     const file=await GET(new Request('http://localhost'+data.evidence.originalFileUrl),{params:Promise.resolve({id:data.evidence.id})});
     expect(file.status).toBe(200);
-    expect(Buffer.from(await file.arrayBuffer())).toEqual(fixture('synthetic-occupancy-text.pdf'));
+    expect(Buffer.from(await file.arrayBuffer())).toEqual(fixture('pdf-with-text.pdf'));
   });
   it('saves a scan without extractable text for linked manual transcription',async()=>{
     vi.resetModules();
     process.env.COUNTABLE_DB_PATH=join(tmpdir(),`countable-scan-${randomUUID()}.db`);
-    const response=await upload(fixture('synthetic-occupancy-blank.pdf'),'scan-example');
+    const response=await upload(fixture('blank-pdf.pdf'),'scan-example');
     expect(response.status).toBe(200);
     const data=await response.json();
     expect(data.evidence.extractionStatus).toBe('manual-needed');
@@ -45,11 +44,11 @@ describe('PDF evidence ingestion',()=>{
   it('keeps a reviewer transcription alongside extracted text',async()=>{
     vi.resetModules();
     process.env.COUNTABLE_DB_PATH=join(tmpdir(),`countable-mixed-${randomUUID()}.db`);
-    const response=await upload(fixture('synthetic-occupancy-text.pdf'),'mixed-example','Reviewer transcription: condition ends on 2025-11-01.');
+    const response=await upload(fixture('pdf-with-text.pdf'),'mixed-example','Reviewer transcription: source is legible.');
     expect(response.status).toBe(200);
     const data=await response.json();
-    expect(data.evidence.text).toContain('Synthetic A3 occupancy nine apartments');
-    expect(data.evidence.text).toContain('Reviewer transcription: condition ends on 2025-11-01.');
+    expect(data.evidence.text).toContain('PDF text extraction fixture');
+    expect(data.evidence.text).toContain('Reviewer transcription: source is legible.');
     expect(data.evidence.pageRef).toBe('manual passage 2');
   });
   it('rejects a file that only claims to be a PDF',async()=>{

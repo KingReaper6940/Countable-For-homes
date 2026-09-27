@@ -51,11 +51,11 @@
 .visual-join:after{content:"";position:absolute;right:0;top:7%;bottom:7%;border-right:2px solid #71a69a}
 .visual-join span{width:100%;border-top:2px solid #71a69a}
 .visual-outcomes{display:flex;flex-direction:column;gap:12px}
-.visual-event{background:#1e664d;color:#fff;border-radius:5px;padding:16px;min-height:190px;display:flex;flex-direction:column}
-.visual-event>span{font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:#d4f0df}
+.visual-event{background:#30505a;color:#fff;border-radius:5px;padding:16px;min-height:190px;display:flex;flex-direction:column}
+.visual-event>span{font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:#d9eaf0}
 .visual-event strong{font-family:Georgia,serif;font-size:75px;line-height:1;margin-top:8px;font-weight:400}
 .visual-event small{font-size:15px;line-height:1.25}
-.event-stamp{border-top:1px solid #8cc6a6;padding-top:8px;margin-top:auto;font-size:12px;text-transform:uppercase;letter-spacing:.08em;font-weight:800}
+.event-stamp{border-top:1px solid #8eabb3;padding-top:8px;margin-top:auto;font-size:12px;text-transform:uppercase;letter-spacing:.08em;font-weight:800}
 .visual-pending{background:#fff1d7;border:1px solid #e1be79;color:#553d18;border-radius:5px;padding:13px 15px}
 .visual-pending span,.visual-pending small{display:block;font-size:14px}
 .visual-pending strong{display:block;font-family:Georgia,serif;font-size:21px;line-height:1.1;font-weight:500;margin:3px 0}
@@ -83,7 +83,7 @@
 .comparison-callout.calm{color:#35524a}
 .supported-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:25px 0 30px}
 .supported-grid>div{padding:15px 13px;background:#edf1ea;border-radius:3px;min-height:155px}
-.supported-grid .supported{background:#ddf0e3;color:#20593e}
+.supported-grid .supported{background:#e2eceb;color:#28565a}
 .supported-grid .pending{background:#fbecd4;color:#845119}
 .supported-grid strong{display:block;font:400 55px/1 Georgia,serif}
 .supported-grid span{display:block;font-size:15px;line-height:1.3;margin-top:11px}
@@ -111,8 +111,8 @@
 .receipt-grid>div:first-child>p{color:#dcece5}
 .receipt-card{background:#fffef9;color:#1d342b;padding:clamp(25px,3vw,42px);border-radius:5px;box-shadow:17px 17px 0 #092a2a;transform:rotate(-.7deg)}
 .receipt-card-top{display:flex;justify-content:space-between;gap:10px;text-transform:uppercase;font-size:12px;font-weight:800;letter-spacing:.09em;border-bottom:1px solid #bdd5c4;padding-bottom:15px}
-.receipt-card-top span:last-child{color:#1f714f}
-.receipt-number{display:flex;align-items:center;gap:20px;color:#1f714f;font:400 clamp(85px,8vw,130px)/1 Georgia,serif;margin:25px 0 20px}
+.receipt-card-top span:last-child{color:#985914}
+.receipt-number{display:flex;align-items:center;gap:20px;color:#985914;font:400 clamp(85px,8vw,130px)/1 Georgia,serif;margin:25px 0 20px}
 .receipt-number small{font:700 17px/1.3 Arial,sans-serif;max-width:190px}
 .receipt-card dl{margin:0}
 .receipt-card dl>div{display:grid;grid-template-columns:95px 1fr;gap:20px;border-top:1px solid #d7e1d7;padding:11px 0;font-size:15px}
@@ -165,6 +165,7 @@
 .real-record-stack{display:flex;flex-direction:column;gap:10px}
 .real-record-stack>div{border:1px solid #c7d4ca;border-left:6px solid #2f6f61;background:#fffefa;padding:20px 25px;box-shadow:6px 6px 0 #d4dfd3}
 .real-record-stack>div:nth-child(3){border-left-color:#bb8b3e}
+.real-record-stack>div:nth-child(4){border-left-color:#557481}
 .real-record-stack span{font-size:13px;color:#537066;text-transform:uppercase;font-weight:800;letter-spacing:.08em}
 .real-record-stack code{display:block;font-size:15px;color:#3d534d;margin-top:5px}
 .real-record-stack strong{display:block;font:400 30px/1.1 Georgia,serif;margin-top:8px}
@@ -201,7 +202,7 @@
   .visual-card code{font-size:12px}
   .visual-card strong{font-size:21px}
   .duplicate-note{font-size:12px}
-  .visual-outcomes:before{content:"BLDG-A + SPR-A: the same eight homes  ↓  OCC-A + review: one supported event";grid-column:1/-1;background:#e0ece2;border-left:3px solid #2e7b68;padding:8px 10px;color:#244a3d;font-size:13px;font-weight:800;line-height:1.3}
+  .visual-outcomes:before{content:"A3 building permit + sprinkler permit: the same nine apartments. Move-in proof is still missing.";grid-column:1/-1;background:#e0eceb;border-left:3px solid #557481;padding:8px 10px;color:#244a4d;font-size:13px;font-weight:800;line-height:1.3}
   .visual-event>span{font-size:12px}
   .visual-event small,.visual-pending small,.visual-pending span{font-size:13px}
   .present-dock{display:none}

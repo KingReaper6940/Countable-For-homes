@@ -1,6 +1,6 @@
 import Database from 'better-sqlite3';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname, isAbsolute, join } from 'node:path';
+import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
+import { dirname, isAbsolute, join, resolve } from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
 import type { AuditEvent, Claim, Coverage, Evidence, HousingEvent, ProjectDetail, ProjectSummary, Relationship, Scope, SourceRecord } from './types';
 import { candidateBlockers, extractClaims, findBuildingLabel, supportedQuote } from './rules';
@@ -36,8 +36,27 @@ function db(): Database.Database {
   if (!evidenceCols.includes('sha256')) connection.exec('ALTER TABLE evidence ADD COLUMN sha256 TEXT');
   const eventCols=(connection.prepare('PRAGMA table_info(events)').all() as {name:string}[]).map(x=>x.name);
   if (!eventCols.includes('pending_evidence_id')) connection.exec('ALTER TABLE events ADD COLUMN pending_evidence_id TEXT');
+  removeLegacySandbox(connection);
   seed(connection);
   return connection;
+}
+
+function removeLegacySandbox(sql:Database.Database) {
+  const projectId='development-10c-sandbox';
+  const legacy=sql.prepare('SELECT scope FROM projects WHERE id=?').get(projectId) as {scope:string}|undefined;
+  if (!legacy || !['synthetic','retired'].includes(legacy.scope)) return;
+  const fileIds=(sql.prepare('SELECT id FROM evidence WHERE project_id=? AND original_file_name IS NOT NULL').all(projectId) as {id:string}[]).map(row=>row.id);
+  sql.transaction(()=>{
+    for (const table of ['audit','events','evidence','relationships','claims','records']) sql.prepare(`DELETE FROM ${table} WHERE project_id=?`).run(projectId);
+    sql.prepare("DELETE FROM projects WHERE id=? AND scope IN ('synthetic','retired')").run(projectId);
+  })();
+  // Uploads use generated UUIDs in this one workspace directory. No other file is touched.
+  const uploadRoot=resolve(UPLOAD_DIR);
+  for (const id of fileIds) {
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) continue;
+    const path=resolve(uploadRoot,`${id}.pdf`);
+    if (dirname(path)===uploadRoot && existsSync(path)) unlinkSync(path);
+  }
 }
 
 function snapshot(): { retrievedAt?: string; sourceUrl?: string; records: Record<string, unknown>[] } | null {
@@ -62,7 +81,6 @@ function seed(sql: Database.Database) {
   const projects = [
     { id:'development-10c',scope:'real',name:'Bedford Phase 2A',subtitle:'Multi-building development · Bedford Dwellings',parcel:'0010C00100000000',address:'2702 Lucas Ct' },
     { id:'conversion-12k',scope:'real',name:'South 20th Street conversion',subtitle:'Office to residential · South Side Flats',parcel:'0012K00286000000',address:'142 S 20th St' },
-    { id:'development-10c-sandbox',scope:'synthetic',name:'Bedford A3 · synthetic sandbox',subtitle:'Demonstration occupancy evidence · not a city record',parcel:'0010C00100000000',address:'2702 Lucas Ct' },
     { id:'cohort-two-unit',scope:'real',name:'Two-unit alteration claim',subtitle:'Additional review cohort · increment unresolved',parcel:'0026J00180000000',address:'Source address in permit record' },
     { id:'cohort-conversion',scope:'real',name:'Multifamily conversion claim',subtitle:'Additional review cohort · housing loss unverified',parcel:'0051G00233000000',address:'Source address in permit record' },
     { id:'cohort-revoked',scope:'real',name:'Revoked three-unit application',subtitle:'Additional review cohort · no verified addition',parcel:'0009N00031000000',address:'Source address in permit record' },
@@ -77,13 +95,12 @@ function seed(sql: Database.Database) {
   const cExists = sql.prepare('SELECT 1 FROM claims WHERE record_id=? AND kind=? AND units=? AND quote=? LIMIT 1');
   const relInsert = sql.prepare('INSERT OR IGNORE INTO relationships(id,project_id,from_record_id,to_record_id,type,status,reason,source_quote) VALUES (@id,@projectId,@fromRecordId,@toRecordId,@type,@status,@reason,@sourceQuote)');
   const eventInsert = sql.prepare('INSERT OR IGNORE INTO events(id,project_id,kind,building_label,units,event_date,status,source_record_ids,evidence_ids,review_decision_id) VALUES (@id,@projectId,@kind,@buildingLabel,@units,@eventDate,@status,@sourceRecordIds,@evidenceIds,@reviewDecisionId)');
-  const evidenceInsert = sql.prepare('INSERT OR IGNORE INTO evidence(id,project_id,type,label,text,source_ref,page_ref,synthetic,extraction_status,created_at) VALUES (@id,@projectId,@type,@label,@text,@sourceRef,@pageRef,@synthetic,@extractionStatus,@createdAt)');
   sql.transaction(() => {
     for (const p of projects) pInsert.run(p);
     for (const raw of snap.records) {
       const permitId = String(raw.permit_id ?? '');
       const base = projectByPermit[permitId] ?? (permitId.startsWith('BP-2020') || permitId.startsWith('EP-2021') ? 'conversion-12k' : 'development-10c');
-      const targets = base === 'development-10c' ? [base,'development-10c-sandbox'] : [base];
+      const targets = [base];
       for (const projectId of targets) {
         const rec: SourceRecord = {
           id:`${projectId}:${permitId}`,permitId,type:String(raw.permit_type ?? ''),description:String(raw.work_description ?? ''),
@@ -112,7 +129,7 @@ function seed(sql: Database.Database) {
         for (const claim of extractClaims(rec)) if (!cExists.get(rec.id,claim.kind,claim.units,claim.quote)) cInsert.run({ ...claim, projectId, recordId:rec.id, reviewStatus:claim.reviewStatus });
       }
     }
-    for (const projectId of ['development-10c','development-10c-sandbox']) {
+    for (const projectId of ['development-10c']) {
       const r = (x:string) => `${projectId}:${x}`;
       const rels: Omit<Relationship,'status'>[] = [
         {id:`${projectId}:parent-a3`,fromRecordId:r('BDA-2024-03554'),toRecordId:r('BP-2024-13992'),type:'parent-project',reason:'Parent states 70 units across eight buildings; A3 is one separately permitted building.',sourceQuote:'70 NEW UNITS IN 8 NEW BUILDINGS'},
@@ -123,17 +140,11 @@ function seed(sql: Database.Database) {
         {id:`${projectId}:temporary-a3`,fromRecordId:r('BDA-2026-05107'),toRecordId:r('BP-2024-13992'),type:'occupancy-related',reason:'Temporary-use application references A3 permit; applicability and conditions require review.',sourceQuote:'BP-2024-13992'},
       ];
       for (const rel of rels) relInsert.run({ ...rel, projectId, status:'proposed' });
-      const sandbox = projectId.endsWith('sandbox');
       const evId = `${projectId}:A3:addition`;
-      eventInsert.run({id:evId,projectId,kind:'addition',buildingLabel:'A3',units:9,eventDate:null,status:'evidence-awaiting-review',sourceRecordIds:JSON.stringify([r('BP-2024-13992')]),evidenceIds:JSON.stringify(sandbox ? [`${projectId}:example-occupancy`] : []),reviewDecisionId:null});
-      if (!sandbox) for (const [label,permitId,units] of [['A4','BP-2024-13991',9],['A7','BP-2024-13989',9],['A8','BP-2025-00108',13]] as const) {
+      eventInsert.run({id:evId,projectId,kind:'addition',buildingLabel:'A3',units:9,eventDate:null,status:'evidence-awaiting-review',sourceRecordIds:JSON.stringify([r('BP-2024-13992')]),evidenceIds:'[]',reviewDecisionId:null});
+      for (const [label,permitId,units] of [['A4','BP-2024-13991',9],['A7','BP-2024-13989',9],['A8','BP-2025-00108',13]] as const) {
         eventInsert.run({id:`${projectId}:${label}:addition`,projectId,kind:'addition',buildingLabel:label,units,eventDate:null,status:'evidence-awaiting-review',sourceRecordIds:JSON.stringify([r(permitId)]),evidenceIds:'[]',reviewDecisionId:null});
       }
-      if (sandbox) evidenceInsert.run({
-        id:`${projectId}:example-occupancy`,projectId,type:'occupancy',label:'Synthetic A3 occupancy example',
-        text:'SYNTHETIC TRAINING EXAMPLE — NOT A CITY-ISSUED DOCUMENT. Example certificate for Building A3 at 2702 Lucas Ct. Residential occupancy authorized for 9 new apartments on 2025-11-01. Conditions: none in this simulated example. The source permit is BP-2024-13992.',
-        sourceRef:'Synthetic demonstration fixture',pageRef:'passage 1',synthetic:1,extractionStatus:'ready',createdAt:'2026-09-26T00:00:00.000Z',
-      });
     }
     relInsert.run({id:'conversion-12k:trade',projectId:'conversion-12k',fromRecordId:'conversion-12k:EP-2021-10918',toRecordId:'conversion-12k:BP-2020-11373',type:'supporting-trade',status:'proposed',reason:'Electrical record repeats the building description and does not establish a second addition.',sourceQuote:'ADD A DWELLING UNIT'});
     eventInsert.run({id:'conversion-12k:conversion:addition',projectId:'conversion-12k',kind:'addition',buildingLabel:null,units:1,eventDate:null,status:'documented-permitted-change',sourceRecordIds:JSON.stringify(['conversion-12k:BP-2020-11373']),evidenceIds:'[]',reviewDecisionId:null});
@@ -162,7 +173,7 @@ export function getCoverage(): Coverage {
 export function getProject(id:string): ProjectDetail | null {
   const sql=db();
   const p=sql.prepare('SELECT * FROM projects WHERE id=?').get(id) as Row|undefined;
-  if (!p) return null;
+  if (!p || p.scope!=='real') return null;
   const rows=(table:string)=>sql.prepare(`SELECT * FROM ${table} WHERE project_id=?`).all(id) as Row[];
   const records=rows('records').map(mapRecord);
   const claims=rows('claims').map(mapClaim);
@@ -180,12 +191,10 @@ export function getProject(id:string): ProjectDetail | null {
   const claim=(kind:Claim['kind'],predicate?:(c:Claim)=>boolean)=>claims.find(c=>c.kind===kind&&c.reviewStatus!=='rejected'&&(!predicate||predicate(c)))?.units;
   const statusByRecord=new Map(records.map(r=>[r.id,r]));
   let claimSummary='Unit claim requires review; increment unknown';
-  if (id.startsWith('development-10c')) {
+  if (id==='development-10c') {
     const total=claim('project-total');
     const buildingCount=new Set(records.filter(r=>r.buildingLabel&&r.type.toUpperCase()==='BUILDING').map(r=>r.buildingLabel)).size;
-    claimSummary=id.endsWith('sandbox')
-      ? `Synthetic occupancy example; ${claim('building-total',c=>statusByRecord.get(c.recordId)?.buildingLabel==='A3'&&statusByRecord.get(c.recordId)?.type.toUpperCase()==='BUILDING')??'unknown'} A3 units proposed`
-      : `Parent source claims ${total??'unknown'} units; ${buildingCount} distinct building permits sampled`;
+    claimSummary=`Parent source claims ${total??'unknown'} units; ${buildingCount} distinct building permits sampled`;
   } else if (id==='conversion-12k') {
     const buildingClaim=(kind:Claim['kind'])=>claim(kind,c=>statusByRecord.get(c.recordId)?.type.toUpperCase()==='BUILDING');
     claimSummary=`${buildingClaim('addition')??'Unknown'} added dwelling; ${buildingClaim('resulting')??'unknown'} resulting units`;
@@ -197,12 +206,12 @@ export function getProject(id:string): ProjectDetail | null {
 }
 
 export function listProjects() {
-  const ids=(db().prepare('SELECT id FROM projects ORDER BY CASE scope WHEN \'real\' THEN 0 ELSE 1 END, id').all() as {id:string}[]).map(x=>x.id);
+  const ids=(db().prepare("SELECT id FROM projects WHERE scope='real' ORDER BY id").all() as {id:string}[]).map(x=>x.id);
   return {projects:ids.map(id=>getProject(id)!.project),coverage:getCoverage(),mode:process.env.OPENAI_API_KEY ? 'live' as const : 'rules-only' as const};
 }
 
 export function findEvidence(id:string): {projectId:string;evidence:Evidence}|null {
-  const row=db().prepare('SELECT * FROM evidence WHERE id=?').get(id) as Row|undefined;
+  const row=db().prepare("SELECT e.* FROM evidence e JOIN projects p ON p.id=e.project_id WHERE e.id=? AND p.scope='real'").get(id) as Row|undefined;
   return row ? {projectId:String(row.project_id),evidence:mapEvidence(row)} : null;
 }
 
@@ -216,8 +225,7 @@ export function saveEvidence(input:{projectId:string;type:'permit'|'occupancy'|'
   const sql=db();
   const project=getProject(input.projectId);
   if (!project) throw new Error('Unknown project');
-  if (project.project.scope==='real' && input.synthetic) throw new Error('Synthetic evidence must be added to a sandbox project.');
-  if (project.project.scope==='synthetic' && !input.synthetic) throw new Error('Sandbox evidence must be labeled synthetic.');
+  if (input.synthetic) throw new Error('Invented evidence cannot be added to a real project.');
   if (input.relatedEventId && !project.events.some(e=>e.id===input.relatedEventId)) throw new Error('Related housing event is not in this project.');
   const id=randomUUID();
   const sha256=input.originalFile?createHash('sha256').update(input.originalFile.bytes).digest('hex'):null;
@@ -236,7 +244,7 @@ export function saveEvidence(input:{projectId:string;type:'permit'|'occupancy'|'
 }
 
 export function getOriginalPdf(id:string):{bytes:Buffer;fileName:string}|null {
-  const row=db().prepare('SELECT original_file_name FROM evidence WHERE id=?').get(id) as {original_file_name:string|null}|undefined;
+  const row=db().prepare("SELECT e.original_file_name FROM evidence e JOIN projects p ON p.id=e.project_id WHERE e.id=? AND p.scope='real'").get(id) as {original_file_name:string|null}|undefined;
   if (!row?.original_file_name || !/^[0-9a-f-]{36}$/i.test(id)) return null;
   const path=join(UPLOAD_DIR,`${id}.pdf`);
   return existsSync(path)?{bytes:readFileSync(path),fileName:row.original_file_name}:null;

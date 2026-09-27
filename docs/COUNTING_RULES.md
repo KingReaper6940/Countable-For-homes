@@ -12,6 +12,5 @@ Countable's verified ledger uses deterministic checks. Model output may propose 
 8. An occupancy document must be reviewed for identity, residential scope, units, date, conditions, and prior counting. Approval records an exact passage from the document supporting the candidate units and event date. Temporary authorizations require explicit classification and applicability review.
 9. Demolition permits alone do not prove completed unit removal. Housing-loss accounting is outside this version.
 10. New evidence explicitly linked to an event reopens that event for review. A repeat approval must address the newly linked document. Repeated imports and repeat approvals must not create duplicate events.
-11. Synthetic documents and decisions remain in a separate sandbox. They never support a real-data event.
 
 Visible states are **Documented permitted change**, **Evidence awaiting review**, **Verified addition within stated coverage**, and **Unresolved**. The verified ledger reports additions in this limited cohort and never labels them net housing growth.
