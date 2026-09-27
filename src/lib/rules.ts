@@ -1,5 +1,6 @@
 import type { Claim, Evidence, HousingEvent, Relationship, SourceRecord } from './types';
 import { createHash } from 'node:crypto';
+import { quoteSupportsDate, quoteSupportsUnit } from './evidence-quote';
 
 /** A model quote is evidence only when it occurs in the supplied source verbatim. */
 export function supportedQuote(source: string, quote: string): boolean {
@@ -73,20 +74,8 @@ export function canApproveEvent(args: { event: HousingEvent; evidence: Evidence;
   const parsedDate=new Date(`${args.eventDate}T00:00:00Z`);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(args.eventDate) || Number.isNaN(parsedDate.getTime()) || parsedDate.toISOString().slice(0,10)!==args.eventDate) errors.push('A valid housing-event date is required.');
   if (!supportedQuote(args.evidence.text,args.evidenceQuote)) errors.push('Occupancy quote must appear verbatim in the selected evidence.');
-  const unitPattern=new RegExp(`(^|\\D)${args.units}(\\D|$)`);
-  if (!unitPattern.test(args.evidenceQuote)) errors.push('Occupancy quote must support the approved unit count.');
-  const iso=/^(\d{4})-(\d{2})-(\d{2})$/.exec(args.eventDate);
-  const monthNames=['January','February','March','April','May','June','July','August','September','October','November','December'];
-  const monthName=iso ? monthNames[Number(iso[2])-1] : undefined;
-  const dateVariants=iso && monthName ? [
-    args.eventDate,
-    `${iso[2]}/${iso[3]}/${iso[1]}`,
-    `${Number(iso[2])}/${Number(iso[3])}/${iso[1]}`,
-    `${monthName} ${Number(iso[3])}, ${iso[1]}`,
-    `${monthName.slice(0,3)} ${Number(iso[3])}, ${iso[1]}`,
-    `${Number(iso[3])} ${monthName} ${iso[1]}`,
-  ] : [];
-  if (!dateVariants.some(date=>args.evidenceQuote.toLowerCase().includes(date.toLowerCase()))) errors.push('Occupancy quote must support the selected event date.');
+  if (!quoteSupportsUnit(args.evidenceQuote,args.units)) errors.push('Occupancy quote must support the approved unit count.');
+  if (!quoteSupportsDate(args.evidenceQuote,args.eventDate)) errors.push('Occupancy quote must support the selected event date.');
   for (const key of ['identity','residentialScope','units','date','conditions','priorCounting']) if (args.checks[key] !== true) errors.push(`${key} review check is incomplete.`);
   if (args.event.status === 'verified-addition' && args.event.reviewDecisionId) errors.push('This event is already approved.');
   return errors;

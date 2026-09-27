@@ -26,3 +26,12 @@
 .saved-ai-finding small{font-size:10px;color:#617267;line-height:1.35}
 .saved-ai-finding em{font-style:normal;font-size:10px;color:#856129;line-height:1.35}
 .saved-ai-panel .saved-ai-limits{font-size:11px;color:#617267;margin-bottom:0}
+.occupancy-comparison{padding:12px;border:1px solid #bdd2c4;border-radius:6px;background:#f5faf6}
+.occupancy-comparison>strong{font-size:12px;color:var(--teal)}
+.occupancy-comparison>div:not(.occupancy-links){display:flex;justify-content:space-between;gap:7px;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid #d8e5dc}
+.occupancy-comparison span,.occupancy-comparison small{font-size:10px;color:#5b6e61}
+.occupancy-comparison b{font-size:12px}
+.occupancy-comparison p{font-size:11px;line-height:1.4;margin:10px 0}
+.occupancy-links{display:flex;flex-wrap:wrap;gap:12px}
+.occupancy-links a,.source-footnote a{font-size:11px;color:var(--teal);font-weight:800}
+.source-footnote code{overflow-wrap:anywhere}

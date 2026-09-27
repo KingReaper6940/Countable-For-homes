@@ -15,7 +15,7 @@ async function workflow() {
 }
 
 describe('real permit workflow',()=>{
-  it('shows only real projects and no verified additions without occupancy evidence',async()=>{
+  it('shows only real projects and no verified additions before occupancy review',async()=>{
     const app=await workflow();
     expect(app.listProjects().projects).toHaveLength(5);
     expect(app.listProjects().projects.every(p=>p.scope==='real')).toBe(true);
@@ -23,6 +23,23 @@ describe('real permit workflow',()=>{
     expect(app.getLedger('real').totalUnits).toBe(0);
     expect(()=>app.getLedger('synthetic')).toThrow(/Only the real-record ledger/);
     expect(app.getLedger('real').unresolvedProjects).toHaveLength(5);
+  });
+
+  it('reviews two original City certificates into one additional South 20th dwelling',async()=>{
+    const app=await workflow();
+    const project=app.getProject('conversion-12k')!;
+    const event=project.events[0];
+    const prior=project.evidence.find(item=>item.id==='conversion-12k:city-co:47881')!;
+    const current=project.evidence.find(item=>item.id==='conversion-12k:city-co:bp-2020-11373')!;
+    expect(prior.text).toContain("doctor's office and use of second floor as a one family dwelling");
+    expect(current.text).toContain('TWO UNIT RESIDENTIAL WITH ONE UNIT ON 1ST FLOOR');
+    expect(event.evidenceIds).toEqual(expect.arrayContaining([prior.id,current.id]));
+    const decision={projectId:project.project.id,action:'approve_event' as const,targetId:event.id,reason:'Prior City certificate 47881 allows one dwelling above an office; new City certificate BP-2020-11373 allows two dwellings and the permit says add one dwelling. Conditions and prior counting reviewed.',changes:{evidenceId:current.id,eventDate:'2024-02-25',units:1,evidenceQuote:current.text,checks:{identity:true,residentialScope:true,units:true,date:true,conditions:true,priorCounting:true}}};
+    app.applyDecision(decision);
+    expect(app.getLedger('real').totalUnits).toBe(1);
+    expect(app.getLedger('real').events[0].evidenceRefs).toHaveLength(2);
+    app.applyDecision(decision);
+    expect(app.getProject(project.project.id)!.audit.filter(entry=>entry.action==='approve_event')).toHaveLength(1);
   });
 
   it('removes only legacy sandbox rows and uploads while preserving real reviews',async()=>{

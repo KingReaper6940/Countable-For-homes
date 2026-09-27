@@ -99,6 +99,12 @@ export function applyDecision(input:DecisionInput):ProjectDetail {
       if (event.pendingEvidenceId && evidenceId!==event.pendingEvidenceId) errors.push('New event-linked evidence must be reviewed for this approval.');
       if (!event.sourceRecordIds.length||!event.sourceRecordIds.every(x=>recordIds.has(x))) errors.push('The event must have source permit evidence.');
       if (!current.claims.some(claim=>event.sourceRecordIds.includes(claim.recordId)&&claim.units===event.units&&['addition','building-total'].includes(claim.kind)&&claim.reviewStatus!=='rejected'&&supportedQuote(current.records.find(r=>r.id===claim.recordId)?.description??'',claim.quote))) errors.push('The candidate increment is no longer supported by a current source claim.');
+      if (input.projectId==='conversion-12k') {
+        const prior=current.evidence.find(item=>item.id==='conversion-12k:city-co:47881');
+        if (evidenceId!=='conversion-12k:city-co:bp-2020-11373' || !prior || !event.evidenceIds.includes(prior.id)) errors.push('Compare the prior and current City occupancy certificates for this conversion.');
+        if (prior && !supportedQuote(prior.text,"first floor as a doctor's office and use of second floor as a one family dwelling")) errors.push('The prior one-dwelling baseline is not supported by its City certificate.');
+        if (!supportedQuote(evidenceMatch.evidence.text,'TWO UNIT RESIDENTIAL WITH ONE UNIT ON 1ST FLOOR') || eventDate!=='2024-02-25' || units!==1) errors.push('The new City certificate must support two resulting dwellings, one added dwelling, and its February 25, 2024 issue date.');
+      }
       if (errors.length) throw new Error(errors.join(' '));
       const decisionId=randomUUID();
       const evidenceIds=[...new Set([...event.evidenceIds,evidenceId])];

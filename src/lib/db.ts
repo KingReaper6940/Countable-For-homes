@@ -10,6 +10,7 @@ const DATA_DIR = join(process.cwd(), 'data');
 const STATE_DIR = join(process.cwd(), '.countable');
 const SNAPSHOT = join(DATA_DIR, 'permits.snapshot.json');
 const MANIFEST = join(DATA_DIR, 'source-manifest.json');
+const OCCUPANCY_EVIDENCE = join(DATA_DIR, 'occupancy-evidence.json');
 const DB_PATH = process.env.COUNTABLE_DB_PATH && isAbsolute(process.env.COUNTABLE_DB_PATH) ? process.env.COUNTABLE_DB_PATH : process.env.COUNTABLE_DB_PATH ? join(/* turbopackIgnore: true */ process.cwd(), process.env.COUNTABLE_DB_PATH) : join(STATE_DIR, 'countable.db');
 const UPLOAD_DIR = join(STATE_DIR, 'uploads');
 const sourceUrl = 'https://data.wprdc.org/dataset/pli-permits';
@@ -38,6 +39,7 @@ function db(): Database.Database {
   if (!eventCols.includes('pending_evidence_id')) connection.exec('ALTER TABLE events ADD COLUMN pending_evidence_id TEXT');
   removeLegacySandbox(connection);
   seed(connection);
+  seedCityOccupancyEvidence(connection);
   return connection;
 }
 
@@ -151,6 +153,26 @@ function seed(sql: Database.Database) {
   })();
 }
 
+function seedCityOccupancyEvidence(sql: Database.Database) {
+  if (!existsSync(OCCUPANCY_EVIDENCE)) return;
+  const priorRun=sql.prepare("SELECT value FROM meta WHERE key='cityOccupancyEvidenceVersion'").get() as {value:string}|undefined;
+  if (priorRun?.value==='1') return;
+  const source=JSON.parse(readFileSync(OCCUPANCY_EVIDENCE,'utf8')) as {
+    projectId:string;eventId:string;evidence:{id:string;label:string;text:string;sourceRef:string;pageRef:string;originalSha256:string}[];
+  };
+  sql.transaction(()=>{
+    const project=sql.prepare('SELECT id FROM projects WHERE id=?').get(source.projectId);
+    const event=sql.prepare('SELECT evidence_ids FROM events WHERE id=? AND project_id=?').get(source.eventId,source.projectId) as {evidence_ids:string}|undefined;
+    if (!project || !event || source.evidence.length!==2) return;
+    const insert=sql.prepare("INSERT OR IGNORE INTO evidence(id,project_id,type,label,text,source_ref,page_ref,synthetic,extraction_status,created_at,original_file_name,sha256) VALUES (?,?, 'occupancy',?,?,?,?,0,'ready',?,NULL,?)");
+    for (const evidence of source.evidence) insert.run(evidence.id,source.projectId,evidence.label,evidence.text,evidence.sourceRef,evidence.pageRef,new Date().toISOString(),evidence.originalSha256);
+    const evidenceIds=[...new Set([...JSON.parse(event.evidence_ids) as string[],...source.evidence.map(item=>item.id)])];
+    sql.prepare("UPDATE events SET evidence_ids=?,pending_evidence_id=?,status='evidence-awaiting-review',review_decision_id=NULL WHERE id=?").run(JSON.stringify(evidenceIds),source.evidence[1].id,source.eventId);
+    addAudit(source.projectId,'source_evidence_added','event',source.eventId,'Two City occupancy certificates added for reviewer comparison',{evidenceIds:source.evidence.map(item=>item.id)});
+    sql.prepare("INSERT OR REPLACE INTO meta(key,value) VALUES ('cityOccupancyEvidenceVersion','1')").run();
+  })();
+}
+
 const mapRecord = (r:Row): SourceRecord => ({id:String(r.id),permitId:String(r.permit_id),type:String(r.type),description:String(r.description),workType:String(r.work_type),issueDate:r.issue_date ? String(r.issue_date) : null,parcel:String(r.parcel),address:String(r.address),status:String(r.status),buildingLabel:r.building_label ? String(r.building_label) : null,sourceUrl:String(r.source_url)});
 const mapClaim = (r:Row): Claim => ({id:String(r.id),recordId:String(r.record_id),kind:r.kind as Claim['kind'],units:Number(r.units),quote:String(r.quote),reviewStatus:r.review_status as Claim['reviewStatus']});
 const mapRel = (r:Row): Relationship => ({id:String(r.id),fromRecordId:String(r.from_record_id),toRecordId:String(r.to_record_id),type:r.type as Relationship['type'],status:r.status as Relationship['status'],reason:String(r.reason),sourceQuote:r.source_quote ? String(r.source_quote) : null});
@@ -167,7 +189,7 @@ export function getCoverage(): Coverage {
   const snapAt = sql.prepare("SELECT value FROM meta WHERE key='snapshotAt'").get() as {value:string}|undefined;
   const count = sql.prepare("SELECT COUNT(*) n FROM records r JOIN projects p ON p.id=r.project_id WHERE p.scope='real'").get() as {n:number};
   const cases = sql.prepare("SELECT COUNT(DISTINCT p.id) n FROM projects p JOIN records r ON r.project_id=p.id WHERE p.scope='real'").get() as {n:number};
-  return {snapshotAt:snapAt?.value || null,sourceUrl,recordCount:count.n,caseCount:cases.n,note:'Focused showcase plus a small additional review cohort. It is not citywide coverage; occupancy records are not included.'};
+  return {snapshotAt:snapAt?.value || null,sourceUrl,recordCount:count.n,caseCount:cases.n,note:'Twelve selected permit records plus two City occupancy certificates for the South 20th Street case. This is not citywide coverage.'};
 }
 
 export function getProject(id:string): ProjectDetail | null {
@@ -184,7 +206,7 @@ export function getProject(id:string): ProjectDetail | null {
   const verified=events.filter(e=>e.status==='verified-addition' && e.reviewDecisionId);
   const unresolved=events.flatMap(e=>e.blockers).filter((x,i,a)=>a.indexOf(x)===i);
   if (id==='development-10c') unresolved.push('Only four of the eight buildings named by the parent claim are in this snapshot; the parent total may have amendments.');
-  if (id==='conversion-12k') unresolved.push('Completed permit status does not establish an occupancy date.');
+  if (id==='conversion-12k'&&!verified.length) unresolved.push('Compare the prior one-dwelling certificate with the newer two-dwelling certificate before reviewing the proposed +1 addition.');
   if (id==='cohort-two-unit') unresolved.push('Two-unit resulting residence is described; the net additional units are unknown.');
   if (id==='cohort-conversion') unresolved.push('An 11-to-8 description does not establish a completed housing-loss event.');
   if (id==='cohort-revoked') unresolved.push('Revoked application does not establish a completed addition or occupancy.');

@@ -4,6 +4,7 @@ import {Suspense,useCallback,useEffect,useMemo,useRef,useState} from "react";
 import Link from "next/link";
 import {useParams,useSearchParams} from "next/navigation";
 import {apiJson,Claim,Evidence,Event,formatDate,kindText,ProjectDetail,Relationship,statusClass,statusText} from "@/components/types";
+import {quoteSupportsDate,quoteSupportsUnit} from "@/lib/evidence-quote";
 import "./workspace.css";
 import "../../app-polish.css";
 
@@ -82,9 +83,10 @@ function ProjectWorkspace(){
       <div className="column-heading subheading"><h2>Evidence documents</h2><button className="text-button" onClick={()=>{setEvidenceRelatedEvent(selectedEvent||"");setEvidenceOpen(!evidenceOpen)}} aria-expanded={evidenceOpen}>{evidenceOpen?"Close":"+ Add evidence"}</button></div>
       <div className="source-list">{data.evidence.map(e=><button key={e.id} className={`source-item evidence-item ${selection?.kind==="evidence"&&selection.id===e.id?"selected":""}`} onClick={()=>{setSelection({kind:"evidence",id:e.id});setSelectedClaim(null)}}><span className="source-type">{e.type}</span><strong>{e.label}</strong><small>{e.pageRef||e.sourceRef||"Source reference pending"}</small></button>)}{!data.evidence.length&&<p className="left-empty">No uploaded evidence yet.</p>}</div>
       </aside>
-      <section className="workspace-center" aria-label="Selected source and relationship view"><div className="panel source-reader"><div className="reader-top"><div><span className="eyebrow">{selectedRecord?"Permit source":selectedEvidence?"Supporting evidence":"Select a source"}</span><h2>{selectedRecord?.permitId||selectedEvidence?.label||"No source selected"}</h2></div>{selectedRecord?<a href={selectedRecord.sourceUrl} target="_blank" rel="noreferrer" className="source-link">Open source ↗</a>:selectedEvidence?.originalFileUrl?<a href={selectedEvidence.originalFileUrl} target="_blank" rel="noreferrer" className="source-link">View original PDF ↗</a>:selectedEvidence?.sourceRef&&(/^https?:\/\//.test(selectedEvidence.sourceRef)||selectedEvidence.sourceRef.startsWith("/api/evidence/"))?<a href={selectedEvidence.sourceRef} target="_blank" rel="noreferrer" className="source-link">Open reference ↗</a>:null}</div>
+      <section className="workspace-center" aria-label="Selected source and relationship view"><div className="panel source-reader"><div className="reader-top"><div><span className="eyebrow">{selectedRecord?"Permit source":selectedEvidence?"Supporting evidence":"Select a source"}</span><h2>{selectedRecord?.permitId||selectedEvidence?.label||"No source selected"}</h2></div>{selectedRecord?<a href={selectedRecord.sourceUrl} target="_blank" rel="noreferrer" className="source-link">Open source ↗</a>:selectedEvidence?.originalFileUrl?<a href={selectedEvidence.originalFileUrl} target="_blank" rel="noreferrer" className="source-link">View original PDF ↗</a>:selectedEvidence?.sourceRef&&(/^https?:\/\//.test(selectedEvidence.sourceRef)||selectedEvidence.sourceRef.startsWith("/api/evidence/")||selectedEvidence.sourceRef.startsWith("/evidence/"))?<a href={selectedEvidence.sourceRef} target="_blank" rel="noreferrer" className="source-link">{selectedEvidence.sourceRef.startsWith("/evidence/")?"View redacted City PDF ↗":"Open reference ↗"}</a>:null}</div>
       {selectedRecord&&<div className="source-meta"><span><b>Type</b>{selectedRecord.type}</span><span><b>Issued</b>{formatDate(selectedRecord.issueDate)}</span><span><b>Current status</b>{selectedRecord.status||"Unknown"}</span></div>}
       {selectedEvidence&&<div className="source-meta"><span><b>Reference</b>{selectedEvidence.sourceRef||"Not supplied"}</span><span><b>Page / passage</b>{selectedEvidence.pageRef||"Not supplied"}</span><span><b>Extraction</b>{selectedEvidence.extractionStatus==="manual-needed"?"Manual text needed":"Text available"}</span></div>}
+      {selectedEvidence?.id.startsWith("conversion-12k:city-co:")&&<div className="source-footnote">This is a selected transcription and privacy-redacted copy of a City certificate. <a href="https://onbasesecure.city.pittsburgh.pa.us/PublicAccessOCC/" target="_blank" rel="noreferrer">Search the official occupancy portal ↗</a> using 142 S 20TH* to inspect both original documents. Original PDF SHA-256: <code>{selectedEvidence.sha256}</code></div>}
       {selectedEvidence?.extractionStatus==="manual-needed"&&<div className="manual-needed"><span>Text could not be extracted from this PDF. Review the original and add a linked transcription.</span><button className="btn btn-small" onClick={()=>{setEvidenceLabel(`${selectedEvidence.label} · transcription`);setEvidenceType(selectedEvidence.type);setEvidenceSource(selectedEvidence.originalFileUrl||selectedEvidence.sourceRef);setEvidencePage(selectedEvidence.pageRef||"");setEvidenceRelatedEvent(selectedEvent||"");setEvidenceOpen(true)}}>Add transcription</button></div>}
       <div className="reader-label">SOURCE TEXT {quoteMatches||analysisQuoteMatches?<span>· Supporting passage highlighted</span>:null}</div>{claim&&selectedRecord&&claim.recordId===selectedRecord.id&&!quoteMatches&&<div className="notice error quote-warning">The proposed quote does not match this source text. It cannot be used as supporting evidence.</div>}<div className="source-text">{selectedText?<Highlighted text={selectedText} quote={quoteMatches?claim?.quote:analysisQuoteMatches?analysisQuote:null}/>:<span className="muted">No extractable text. If this is a scanned PDF, add a manual transcription linked to the document.</span>}</div>
       {selectedRecord&&<div className="source-footnote">The issue date and current status describe the permit record. They are not a housing event date or occupancy determination.</div>}
@@ -136,11 +138,18 @@ function EventReview({
   const selectedDocument = validEvidence.find(e => e.id === eventEvidence);
   const candidateSources = event.sourceRecordIds.map(id => data.records.find(record => record.id === id)).filter((record): record is NonNullable<typeof record> => !!record);
   const matchingClaim = data.claims.some(claim => claim.recordId === eventSourceRecord && claim.reviewStatus !== "rejected" && (claim.kind === "addition" || claim.kind === "building-total") && claim.units === Number(eventUnits));
-  const matchingSentence = selectedDocument?.text.split(/(?<=[.!?])\s+/).find(sentence => /\d{4}-\d{2}-\d{2}/.test(sentence) && new RegExp("\\b" + eventUnits + "\\b").test(sentence))?.trim();
+  const matchingSentence = selectedDocument && selectedDocument.text.length<1000 && quoteSupportsDate(selectedDocument.text,eventDate) && quoteSupportsUnit(selectedDocument.text,Number(eventUnits)) ? selectedDocument.text : undefined;
   const quoteMatches = !!(eventEvidenceQuote.trim() && selectedDocument?.text.toLowerCase().includes(eventEvidenceQuote.trim().toLowerCase()));
-  const quoteSupportsInputs = quoteMatches && !!eventDate && eventEvidenceQuote.includes(eventDate) && new RegExp("\\b" + eventUnits + "\\b").test(eventEvidenceQuote);
+  const quoteSupportsInputs = quoteMatches && quoteSupportsDate(eventEvidenceQuote,eventDate) && quoteSupportsUnit(eventEvidenceQuote,Number(eventUnits));
 
   return <>
+    {data.project.id==="conversion-12k"&&<div className="occupancy-comparison">
+      <strong>Compare two real City certificates</strong>
+      <div><span>Prior certificate 47881</span><b>1 dwelling</b><small>Office on the first floor</small></div>
+      <div><span>Certificate BP-2020-11373</span><b>2 dwellings</b><small>Issued February 25, 2024</small></div>
+      <p>Proposed change: <b>+1 dwelling</b>. Read both redacted copies and the permit&apos;s “add a dwelling unit” passage before approving.</p>
+      <div className="occupancy-links"><a href="/evidence/south-20th-prior-redacted.pdf" target="_blank" rel="noreferrer">Prior City PDF ↗</a><a href="/evidence/south-20th-2024-redacted.pdf" target="_blank" rel="noreferrer">New City PDF ↗</a></div>
+    </div>}
     <div className="event-state">
       <span className={"pill " + statusClass[event.status]}>{statusText[event.status]}</span>
       <span>{event.units === null ? "Increment unknown" : String(event.units) + " " + (event.status === "verified-addition" ? "reviewed" : "proposed") + " addition" + (event.units === 1 ? "" : "s")}</span>
@@ -171,7 +180,7 @@ function EventReview({
       <label className="field"><span className="field-label">Verbatim occupancy passage</span>
         <textarea className="textarea" value={eventEvidenceQuote} onChange={e => setEventEvidenceQuote(e.target.value)} placeholder="Copy the exact passage supporting both the unit count and event date."/>
       </label>
-      {matchingSentence && <button type="button" className="text-button quote-helper" onClick={() => setEventEvidenceQuote(matchingSentence)}>Insert matching sentence from selected document</button>}
+      {matchingSentence && <button type="button" className="text-button quote-helper" onClick={() => setEventEvidenceQuote(matchingSentence)}>Insert cited passage from selected document</button>}
       {eventEvidenceQuote && !quoteMatches && <div className="notice error tiny">The passage does not match the selected document text.</div>}
       {eventEvidenceQuote && quoteMatches && !quoteSupportsInputs && <div className="notice error tiny">The passage must state the selected unit count and event date.</div>}
       {event.units !== Number(eventUnits) && <div className="notice info tiny">Correct the candidate unit increment before approving it.</div>}

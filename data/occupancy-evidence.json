@@ -1,0 +1,25 @@
+{
+  "retrievedAt": "2026-09-27",
+  "officialSearchUrl": "https://onbasesecure.city.pittsburgh.pa.us/PublicAccessOCC/",
+  "searchInstruction": "Search Property Address 142 S 20TH* to find certificates 47881 and BP-2020-11373.",
+  "projectId": "conversion-12k",
+  "eventId": "conversion-12k:conversion:addition",
+  "evidence": [
+    {
+      "id": "conversion-12k:city-co:47881",
+      "label": "Prior City occupancy certificate 47881 · one dwelling",
+      "text": "CERTIFICATE OF OCCUPANCY\nCITY OF PITTSBURGH\nNo. 47881\nLocation: 142 S. Twentieth Street\nPermitted Occupancy: Use of first floor as a doctor's office and use of second floor as a one family dwelling.\nPermission is hereby granted for the occupancy above described.",
+      "pageRef": "Page 1 · manual transcription of scanned City certificate; search address 142 S 20TH*",
+      "sourceRef": "/evidence/south-20th-prior-redacted.pdf",
+      "originalSha256": "5a885687b20f36d031ca60013f541ebe31b6893168822e0c8123f6ec8ecb6b73"
+    },
+    {
+      "id": "conversion-12k:city-co:bp-2020-11373",
+      "label": "City occupancy certificate BP-2020-11373 · two dwellings",
+      "text": "CERTIFICATE OF OCCUPANCY\nCITY OF PITTSBURGH\nBuilding Address: 142 S 20TH ST\nCertificate Number: BP-2020-11373\nParcel ID: 0012K00286000000\nDate Issued: February 25, 2024\nPermitted Occupancy: USE OF THREE STORY STRUCTURE AS TWO UNIT RESIDENTIAL WITH ONE UNIT ON 1ST FLOOR FLOOR & SECOND UNIT ON 2ND & 3RD FLOOR.\nZoning Use Type: Residential | 2-Unit\nFinal Inspection Date: February 7, 2024\nPermission is hereby granted for the occupancy described above.",
+      "pageRef": "Page 1 · selected fields from City certificate; search permit BP-2020-11373",
+      "sourceRef": "/evidence/south-20th-2024-redacted.pdf",
+      "originalSha256": "bc3a9022585ea4a8df0d630a3d0d04be431250a2b91b05308c455ea5cf2a3577"
+    }
+  ]
+}
