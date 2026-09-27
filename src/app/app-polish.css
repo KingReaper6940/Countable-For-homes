@@ -1,0 +1,111 @@
+/* Presentation legibility pass shared by the functional screens. */
+.queue-page,.workspace-page,.ledger-page{font-size:16px;line-height:1.5}
+.queue-page .page-title,.workspace-page .page-title,.ledger-page .page-title{font-size:clamp(42px,4vw,62px)}
+.queue-page .page-intro,.workspace-page .page-intro,.ledger-page .page-intro{font-size:19px}
+.judge-guide{position:relative;display:flex;justify-content:space-between;padding:27px 32px;margin-bottom:24px;background:#e8f0e9;border-color:#b7cfc3;border-left:6px solid #236e61}
+.judge-guide h2{font:500 clamp(27px,2.5vw,39px)/1.13 Georgia,serif;letter-spacing:-.035em;margin:7px 0}
+.judge-guide p{font-size:17px;max-width:860px;line-height:1.45;margin:0 0 18px}
+.judge-guide-actions{display:flex;flex-wrap:wrap;gap:10px}
+.guide-dismiss{align-self:flex-start;background:transparent;border:0;color:#3d6055;font-size:28px;line-height:1;padding:0 2px;min-width:34px;min-height:34px}
+.guide-dismiss:hover{color:#111}
+.coverage-bar{padding:20px 24px}
+.coverage-copy strong{font-size:17px}
+.coverage-copy span{font-size:15px}
+.queue-toolbar{margin-top:30px}
+.segmented button{font-size:15px;padding:10px 14px}
+.segmented span{font-size:13px}
+.search-box{height:46px;font-size:16px}
+.queue-count{font-size:13px;color:#4b6256}
+.case-grid{gap:19px}
+.case-card{min-height:370px;padding:26px}
+.case-index{font-size:13px;color:#4a6557}
+.case-card h2{font-size:29px;margin-top:20px}
+.case-subtitle{font-size:16px}
+.case-facts{gap:28px;flex-wrap:wrap}
+.case-facts strong{font-size:29px}
+.case-facts span{font-size:14px}
+.case-claim{font-size:17px}
+.case-claim span{font-size:13px}
+.case-question{font-size:15px;max-width:72%;line-height:1.35}
+.coverage-detail p{font-size:17px}
+.coverage-detail a{font-size:16px}
+.workspace-page{max-width:1760px}
+.workspace-header{gap:30px}
+.workspace-header .page-title{font-size:clamp(42px,3.4vw,58px)}
+.workspace-header>div:first-child>p{font-size:17px}
+.mode-line{font-size:15px;line-height:1.45}
+.workspace-grid{grid-template-columns:minmax(240px,280px) minmax(420px,1fr) minmax(325px,390px);gap:17px}
+.column-heading{padding:19px 17px 15px}
+.column-heading h2{font-size:15px}
+.column-heading>span{font-size:14px}
+.source-list{padding:8px}
+.source-item{padding:13px;gap:3px}
+.source-item strong{font-size:16px}
+.source-item>span:not(.source-type){font-size:14px}
+.source-item small{font-size:13px;color:#4d6457}
+.source-type{font-size:12px}
+.left-empty{font-size:15px}
+.text-button{font-size:14px}
+.reader-top h2{font-size:33px}
+.source-link{font-size:14px}
+.source-meta span{font-size:14px;padding:12px}
+.source-meta b{font-size:12px;color:#4d6457}
+.reader-label{font-size:13px;color:#4d6457}
+.source-text{font-size:21px;line-height:1.6;max-height:500px}
+.source-footnote{font-size:15px}
+.relationship-key{font-size:13px}
+.relationship-key i{width:10px;height:10px}
+.relationship-row{padding:12px 8px;gap:10px}
+.relationship-names{font-size:15px;flex-wrap:wrap}
+.relationship-type{font-size:13px}
+.relationship-row .pill{font-size:12px}
+.relation-review blockquote{font-size:17px;line-height:1.45}
+.small-copy{font-size:15px}
+.right-panel{padding:21px}
+.right-panel h2{font-size:19px}
+.explain-line{font-size:15px}
+.claim-item{padding:11px 12px}
+.claim-item strong{font-size:28px}
+.claim-item span span{font-size:16px}
+.claim-item small{font-size:13px}
+.question-list li,.blocker-list li{font-size:15px;line-height:1.4;padding:11px 12px}
+.event-state{font-size:15px}
+.event-form .notice{font-size:15px}
+.checklist{padding:11px 12px}
+.checklist legend{font-size:13px}
+.checklist label{font-size:15px;line-height:1.4;margin:8px 0}
+.checklist input{width:18px;height:18px;flex:0 0 auto}
+.audit-list strong{font-size:14px}
+.audit-list span{font-size:13px}
+.showcase{padding:23px 26px}
+.showcase-progress{font-size:14px}
+.showcase-number{font-size:49px}
+.showcase-body h2{font-size:26px}
+.showcase-body p{font-size:16px;line-height:1.4}
+.showcase-sandbox-link{font-size:15px}
+.manual-needed{font-size:15px}
+.claim-review h3{font-size:17px}
+.quote-warning{font-size:14px}
+.evidence-modal p{font-size:16px}
+.ledger-page{max-width:1540px}
+.ledger-summary{padding:30px 34px}
+.ledger-summary p{font-size:16px}
+.ledger-summary-side strong{font-size:13px}
+.ledger-summary-side span{font-size:24px}
+.ledger-tools h2{font-size:22px}
+.ledger-tools p{font-size:15px}
+.ledger-table th{font-size:13px;padding:15px 16px;color:#50675a}
+.ledger-table td{font-size:16px;padding:18px 16px}
+.ledger-table small{font-size:13px}
+.ledger-table .unit-cell{font-size:29px}
+.ledger-lower h2{font-size:20px}
+.unresolved-list a{font-size:16px}
+.unresolved-list span{font-size:14px}
+.ledger-audit li{grid-template-columns:105px 1fr}
+.audit-time{font-size:13px}
+.ledger-audit strong{font-size:14px}
+.ledger-audit span,.ledger-audit small{font-size:13px}
+.ledger-footnote{font-size:15px}
+@media(max-width:1370px){.workspace-grid{grid-template-columns:minmax(220px,260px) minmax(0,1fr)}.workspace-right{grid-column:2;display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.workspace-right .right-panel:nth-child(3){grid-column:1/-1}.workspace-left{position:static}}
+@media(max-width:900px){.workspace-grid{display:block}.workspace-left,.workspace-center,.workspace-right{margin-bottom:15px}.workspace-right{display:flex}.case-grid{grid-template-columns:1fr}.case-card{min-height:0}}
+@media(max-width:650px){.judge-guide{padding:20px}.judge-guide p{font-size:16px}.case-card{padding:20px}.case-card h2{font-size:26px}.case-bottom{align-items:flex-start;flex-direction:column}.case-question{max-width:100%}.case-bottom .btn{align-self:flex-start}.workspace-header-actions{justify-content:flex-start}.workspace-page .page-title{font-size:40px}.source-text{font-size:19px}.relationship-panel,.relation-review{padding:17px}.right-panel{padding:17px}.showcase{padding:18px}.showcase-body{gap:9px}.showcase-actions{margin-left:0}.ledger-summary{padding:22px}.ledger-summary-side{grid-template-columns:repeat(3,minmax(0,1fr))}.ledger-summary-side span{font-size:18px}.ledger-table{min-width:800px}}

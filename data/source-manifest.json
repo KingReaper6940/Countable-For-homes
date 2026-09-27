@@ -1,0 +1,108 @@
+{
+  "retrievedAt": "2026-09-26T23:05:47Z",
+  "sourceUrl": "https://data.wprdc.org/dataset/pli-permits",
+  "apiUrl": "https://data.wprdc.org/api/3/action/datastore_search",
+  "resourceId": "f4d1177a-f597-4c32-8cbf-7885f56253f6",
+  "fields": [
+    "permit_id",
+    "permit_type",
+    "work_description",
+    "work_type",
+    "issue_date",
+    "parcel_num",
+    "address",
+    "latitude",
+    "longitude",
+    "neighborhood",
+    "status"
+  ],
+  "seedPermitIds": [
+    "BP-2020-11373",
+    "EP-2021-10918",
+    "BDA-2024-03554",
+    "BP-2024-13992",
+    "BP-2024-13991",
+    "BP-2024-13989",
+    "BP-2025-00108",
+    "SSP-2025-03861",
+    "BDA-2026-05107",
+    "BDA-2024-00844",
+    "BP-2023-03827",
+    "BP-2022-11140"
+  ],
+  "queries": [
+    {
+      "permit_id": "BP-2020-11373",
+      "url": "https://data.wprdc.org/api/3/action/datastore_search?resource_id=f4d1177a-f597-4c32-8cbf-7885f56253f6&filters=%7B%22permit_id%22%3A%22BP-2020-11373%22%7D&fields=permit_id%2Cpermit_type%2Cwork_description%2Cwork_type%2Cissue_date%2Cparcel_num%2Caddress%2Clatitude%2Clongitude%2Cneighborhood%2Cstatus&limit=100&offset=0",
+      "returnedRows": 1
+    },
+    {
+      "permit_id": "EP-2021-10918",
+      "url": "https://data.wprdc.org/api/3/action/datastore_search?resource_id=f4d1177a-f597-4c32-8cbf-7885f56253f6&filters=%7B%22permit_id%22%3A%22EP-2021-10918%22%7D&fields=permit_id%2Cpermit_type%2Cwork_description%2Cwork_type%2Cissue_date%2Cparcel_num%2Caddress%2Clatitude%2Clongitude%2Cneighborhood%2Cstatus&limit=100&offset=0",
+      "returnedRows": 1
+    },
+    {
+      "permit_id": "BDA-2024-03554",
+      "url": "https://data.wprdc.org/api/3/action/datastore_search?resource_id=f4d1177a-f597-4c32-8cbf-7885f56253f6&filters=%7B%22permit_id%22%3A%22BDA-2024-03554%22%7D&fields=permit_id%2Cpermit_type%2Cwork_description%2Cwork_type%2Cissue_date%2Cparcel_num%2Caddress%2Clatitude%2Clongitude%2Cneighborhood%2Cstatus&limit=100&offset=0",
+      "returnedRows": 1
+    },
+    {
+      "permit_id": "BP-2024-13992",
+      "url": "https://data.wprdc.org/api/3/action/datastore_search?resource_id=f4d1177a-f597-4c32-8cbf-7885f56253f6&filters=%7B%22permit_id%22%3A%22BP-2024-13992%22%7D&fields=permit_id%2Cpermit_type%2Cwork_description%2Cwork_type%2Cissue_date%2Cparcel_num%2Caddress%2Clatitude%2Clongitude%2Cneighborhood%2Cstatus&limit=100&offset=0",
+      "returnedRows": 1
+    },
+    {
+      "permit_id": "BP-2024-13991",
+      "url": "https://data.wprdc.org/api/3/action/datastore_search?resource_id=f4d1177a-f597-4c32-8cbf-7885f56253f6&filters=%7B%22permit_id%22%3A%22BP-2024-13991%22%7D&fields=permit_id%2Cpermit_type%2Cwork_description%2Cwork_type%2Cissue_date%2Cparcel_num%2Caddress%2Clatitude%2Clongitude%2Cneighborhood%2Cstatus&limit=100&offset=0",
+      "returnedRows": 1
+    },
+    {
+      "permit_id": "BP-2024-13989",
+      "url": "https://data.wprdc.org/api/3/action/datastore_search?resource_id=f4d1177a-f597-4c32-8cbf-7885f56253f6&filters=%7B%22permit_id%22%3A%22BP-2024-13989%22%7D&fields=permit_id%2Cpermit_type%2Cwork_description%2Cwork_type%2Cissue_date%2Cparcel_num%2Caddress%2Clatitude%2Clongitude%2Cneighborhood%2Cstatus&limit=100&offset=0",
+      "returnedRows": 1
+    },
+    {
+      "permit_id": "BP-2025-00108",
+      "url": "https://data.wprdc.org/api/3/action/datastore_search?resource_id=f4d1177a-f597-4c32-8cbf-7885f56253f6&filters=%7B%22permit_id%22%3A%22BP-2025-00108%22%7D&fields=permit_id%2Cpermit_type%2Cwork_description%2Cwork_type%2Cissue_date%2Cparcel_num%2Caddress%2Clatitude%2Clongitude%2Cneighborhood%2Cstatus&limit=100&offset=0",
+      "returnedRows": 1
+    },
+    {
+      "permit_id": "SSP-2025-03861",
+      "url": "https://data.wprdc.org/api/3/action/datastore_search?resource_id=f4d1177a-f597-4c32-8cbf-7885f56253f6&filters=%7B%22permit_id%22%3A%22SSP-2025-03861%22%7D&fields=permit_id%2Cpermit_type%2Cwork_description%2Cwork_type%2Cissue_date%2Cparcel_num%2Caddress%2Clatitude%2Clongitude%2Cneighborhood%2Cstatus&limit=100&offset=0",
+      "returnedRows": 1
+    },
+    {
+      "permit_id": "BDA-2026-05107",
+      "url": "https://data.wprdc.org/api/3/action/datastore_search?resource_id=f4d1177a-f597-4c32-8cbf-7885f56253f6&filters=%7B%22permit_id%22%3A%22BDA-2026-05107%22%7D&fields=permit_id%2Cpermit_type%2Cwork_description%2Cwork_type%2Cissue_date%2Cparcel_num%2Caddress%2Clatitude%2Clongitude%2Cneighborhood%2Cstatus&limit=100&offset=0",
+      "returnedRows": 1
+    },
+    {
+      "permit_id": "BDA-2024-00844",
+      "url": "https://data.wprdc.org/api/3/action/datastore_search?resource_id=f4d1177a-f597-4c32-8cbf-7885f56253f6&filters=%7B%22permit_id%22%3A%22BDA-2024-00844%22%7D&fields=permit_id%2Cpermit_type%2Cwork_description%2Cwork_type%2Cissue_date%2Cparcel_num%2Caddress%2Clatitude%2Clongitude%2Cneighborhood%2Cstatus&limit=100&offset=0",
+      "returnedRows": 1
+    },
+    {
+      "permit_id": "BP-2023-03827",
+      "url": "https://data.wprdc.org/api/3/action/datastore_search?resource_id=f4d1177a-f597-4c32-8cbf-7885f56253f6&filters=%7B%22permit_id%22%3A%22BP-2023-03827%22%7D&fields=permit_id%2Cpermit_type%2Cwork_description%2Cwork_type%2Cissue_date%2Cparcel_num%2Caddress%2Clatitude%2Clongitude%2Cneighborhood%2Cstatus&limit=100&offset=0",
+      "returnedRows": 1
+    },
+    {
+      "permit_id": "BP-2022-11140",
+      "url": "https://data.wprdc.org/api/3/action/datastore_search?resource_id=f4d1177a-f597-4c32-8cbf-7885f56253f6&filters=%7B%22permit_id%22%3A%22BP-2022-11140%22%7D&fields=permit_id%2Cpermit_type%2Cwork_description%2Cwork_type%2Cissue_date%2Cparcel_num%2Caddress%2Clatitude%2Clongitude%2Cneighborhood%2Cstatus&limit=100&offset=0",
+      "returnedRows": 1
+    }
+  ],
+  "cohortSelection": {
+    "discoveryUrl": "https://data.wprdc.org/api/3/action/datastore_search?resource_id=f4d1177a-f597-4c32-8cbf-7885f56253f6&q=UNITS&fields=permit_id%2Cpermit_type%2Cwork_description%2Cwork_type%2Cissue_date%2Cparcel_num%2Caddress%2Clatitude%2Clongitude%2Cneighborhood%2Cstatus&limit=100&offset=0",
+    "criterion": "From the first 100 q=UNITS results, select three permits on distinct parcels with explicit unit mentions that illustrate resulting use, possible but unverified unit reduction, and revoked work; then re-fetch each by exact permit_id.",
+    "cohortPermitIds": [
+      "BDA-2024-00844",
+      "BP-2023-03827",
+      "BP-2022-11140"
+    ]
+  },
+  "recordCount": 12,
+  "contentSha256": "58b5bed322f902a371cf83b4d65d803ed04fc81eb3a51dbc64e7e41e2a694858",
+  "hashMethod": "SHA-256 of UTF-8 JSON records with object keys sorted alphabetically and no extra whitespace",
+  "sanitization": "Only allowlisted fields requested; email addresses and telephone numbers in descriptions replaced; apartment/unit suffixes removed from addresses. Manual inspection still required for incidental names."
+}

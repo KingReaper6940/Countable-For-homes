@@ -1,0 +1,14 @@
+node_modules/
+.next/
+.env
+.env.local
+.countable/
+*.db
+*.db-shm
+*.db-wal
+coverage/
+*.tsbuildinfo
+.chrome-review/
+Countable/
+desktop-review.png
+docs/*-review.png

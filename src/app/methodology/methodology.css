@@ -1,0 +1,16 @@
+.methodology-page{background:#f7f4ed;color:#172b2c;min-height:calc(100vh - 130px);padding:74px 24px 100px}
+.methodology-container{max-width:1250px;margin:0 auto}
+.methodology-eyebrow,.methodology-grid section>span{color:#17665d;font-size:14px;font-weight:850;letter-spacing:.13em;text-transform:uppercase}
+.methodology-page h1{font-family:Georgia,serif;font-size:clamp(48px,6vw,88px);line-height:1.03;max-width:980px;margin:22px 0}
+.methodology-lede{font-size:clamp(20px,2vw,26px);line-height:1.46;max-width:900px;color:#344c49}
+.methodology-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:62px}
+.methodology-grid section{border:1px solid #becfc5;border-top:5px solid #155c51;background:#fffefa;padding:27px;min-height:330px}
+.methodology-grid h2{font-family:Georgia,serif;font-size:clamp(29px,2.7vw,39px);line-height:1.08;margin:34px 0 18px}
+.methodology-grid p,.methodology-note p{font-size:18px;line-height:1.55;color:#344540}
+.methodology-note{border-left:5px solid #ad7b32;background:#fff1d9;margin-top:28px;padding:23px 29px;max-width:1000px}
+.methodology-note strong{font-size:20px}
+.methodology-note p{margin:7px 0 0}
+.methodology-links{display:flex;flex-wrap:wrap;gap:12px;margin-top:36px}
+.methodology-links a{display:inline-block;color:#114e49;border:1px solid #88ada0;padding:13px 18px;text-decoration:none;font-size:16px;font-weight:800;background:#f9fffa}
+.methodology-links a:hover{background:#d7ebe1}
+@media(max-width:850px){.methodology-grid{grid-template-columns:1fr}.methodology-grid section{min-height:0}.methodology-page{padding:50px 20px 80px}}

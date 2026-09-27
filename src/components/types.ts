@@ -1,0 +1,19 @@
+export type Scope = "real" | "synthetic";
+export type ReviewStatus = "unresolved" | "evidence-awaiting-review" | "documented-permitted-change" | "verified-addition";
+export type ProjectSummary = {id:string;scope:Scope;name:string;subtitle:string;parcel:string;address:string;recordCount:number;claimSummary:string;reviewStatus:ReviewStatus;unresolved:string[];verifiedUnits:number|null};
+export type Coverage = {snapshotAt:string|null;sourceUrl:string;recordCount:number;caseCount:number;note:string};
+export type ProjectList = {projects:ProjectSummary[];coverage:Coverage;mode:"live"|"rules-only"};
+export type RecordItem = {id:string;permitId:string;type:string;description:string;workType:string|null;issueDate:string|null;parcel:string;address:string;status:string;buildingLabel:string|null;sourceUrl:string};
+export type Claim = {id:string;recordId:string;kind:"existing"|"resulting"|"addition"|"removal"|"project-total"|"building-total";units:number;quote:string;reviewStatus:"proposed"|"approved"|"rejected"};
+export type Relationship = {id:string;fromRecordId:string;toRecordId:string;type:"parent-project"|"building"|"supporting-trade"|"amendment"|"occupancy-related";status:"proposed"|"approved"|"rejected";reason:string;sourceQuote:string|null};
+export type Evidence = {id:string;type:"permit"|"occupancy"|"other";label:string;text:string;sourceRef:string;pageRef:string|null;synthetic:boolean;extractionStatus:"ready"|"manual-needed";createdAt:string;originalFileUrl?:string|null;sha256?:string|null};
+export type Event = {id:string;kind:"addition";buildingLabel:string|null;units:number|null;eventDate:string|null;status:ReviewStatus;blockers:string[];sourceRecordIds:string[];evidenceIds:string[];pendingEvidenceId:string|null;reviewDecisionId:string|null};
+export type Audit = {id:string;action:string;targetType:string;targetId:string;reason:string;at:string;details:string|null};
+export type ProjectDetail = {project:ProjectSummary;records:RecordItem[];claims:Claim[];relationships:Relationship[];evidence:Evidence[];events:Event[];audit:Audit[];mode:"live"|"rules-only"};
+export type LedgerEvent = {id:string;projectId:string;projectName:string;buildingLabel:string|null;units:number;eventDate:string;sourceRefs:string[];evidenceRefs:string[];decisionAt:string;reason:string};
+export type LedgerData = {scope:Scope;events:LedgerEvent[];totalUnits:number;coverage:Coverage;unresolvedProjects:{id:string;name:string;reason:string}[];audit:Audit[]};
+export const statusText:Record<ReviewStatus,string>={unresolved:"Unresolved","evidence-awaiting-review":"Evidence awaiting review","documented-permitted-change":"Documented permitted change","verified-addition":"Verified addition within coverage"};
+export const statusClass:Record<ReviewStatus,string>={unresolved:"amber","evidence-awaiting-review":"amber","documented-permitted-change":"teal","verified-addition":"green"};
+export const kindText:Record<Claim["kind"],string>={existing:"Existing units",resulting:"Resulting units",addition:"Proposed addition",removal:"Proposed removal","project-total":"Parent project total","building-total":"Building units"};
+export function formatDate(date:string|null|undefined){if(!date)return "Unknown";const parsed=new Date(date);return Number.isNaN(parsed.getTime())?date:parsed.toLocaleDateString("en-US",{year:"numeric",month:"short",day:"numeric",timeZone:"UTC"});}
+export async function apiJson<T>(url:string,options?:RequestInit):Promise<T>{const response=await fetch(url,{...options,cache:"no-store"});const body=await response.json().catch(()=>({}));if(!response.ok)throw new Error(body.error||body.message||`Request failed (${response.status})`);return body as T;}
