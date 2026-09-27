@@ -31,7 +31,7 @@ export default function QueuePage(){
     {loading?<div className="loading"><div className="spinner"/>Loading source coverage and cases…</div>:data&&<>
       <div className="coverage-bar panel">
         <div className="coverage-icon" aria-hidden="true">◎</div>
-        <div className="coverage-copy"><strong>What this workspace covers</strong><span>{data.coverage.caseCount} seeded case{data.coverage.caseCount===1?"":"s"} · {data.coverage.recordCount} cached permit record{data.coverage.recordCount===1?"":"s"} · Snapshot {formatDate(data.coverage.snapshotAt)}</span></div>
+        <div className="coverage-copy"><strong>What this workspace covers</strong><span>{data.coverage.caseCount} selected real case{data.coverage.caseCount===1?"":"s"} · {data.coverage.recordCount} public permit record{data.coverage.recordCount===1?"":"s"} · Snapshot {formatDate(data.coverage.snapshotAt)}</span></div>
         <span className="pill teal">{data.mode==="live"?"Live AI available":"Rules-only mode"}</span>
         <button className="btn btn-small" aria-expanded={coverageOpen} onClick={()=>setCoverageOpen(!coverageOpen)}>{coverageOpen?"Hide":"View"} coverage</button>
       </div>
