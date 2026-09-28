@@ -4,7 +4,11 @@ import { tmpdir } from 'node:os';
 import { randomUUID } from 'node:crypto';
 
 const { createResponse } = vi.hoisted(() => ({ createResponse: vi.fn() }));
-vi.mock('openai', () => ({ default: class { responses = { create: createResponse }; } }));
+vi.mock('openai', () => ({
+  default: class { responses = { create: createResponse }; },
+  APIConnectionError: class extends Error {},
+  APIConnectionTimeoutError: class extends Error {},
+}));
 
 async function app() {
   vi.resetModules();
@@ -76,7 +80,7 @@ describe('live analysis provenance', () => {
     const result = await service.analyzeProject('development-10c');
     expect(result.mode).toBe('saved-ai-replay');
     if (result.mode !== 'saved-ai-replay') throw new Error('Expected saved analysis');
-    expect(result.fallbackReason).toMatch(/could not be verified/);
+    expect(result.fallbackReason).toMatch(/no findings whose quotes match/);
     expect(service.getProject('development-10c')!.audit.filter(item => item.action === 'analyze')).toHaveLength(0);
   });
 
@@ -87,6 +91,28 @@ describe('live analysis provenance', () => {
     const result = await service.analyzeProject('development-10c');
     expect(result.mode).toBe('saved-ai-replay');
     expect(JSON.stringify(result)).not.toContain('sensitive provider detail');
+  });
+
+  it('identifies SDK connection errors even when their error name is generic', async () => {
+    process.env.OPENAI_API_KEY = 'test-key';
+    const service = await app();
+    const error = Object.assign(new Error('private connection detail'), { name: 'Error' });
+    Object.defineProperty(error, 'constructor', { value: { name: 'APIConnectionError' } });
+    createResponse.mockRejectedValue(error);
+    const result = await service.analyzeProject('development-10c');
+    if (result.mode === 'live') throw new Error('Expected fallback');
+    expect(result.fallbackReason).toMatch(/connection failed/);
+    expect(JSON.stringify(result)).not.toContain('private connection detail');
+  });
+
+  it('names exhausted API credits without exposing provider details', async () => {
+    process.env.OPENAI_API_KEY = 'test-key';
+    const service = await app();
+    createResponse.mockRejectedValue(Object.assign(new Error('private billing detail'), { status: 429, code: 'credit_balance_exhausted' }));
+    const result = await service.analyzeProject('development-10c');
+    if (result.mode === 'live') throw new Error('Expected fallback');
+    expect(result.fallbackReason).toBe('The OpenAI API credit balance is exhausted.');
+    expect(JSON.stringify(result)).not.toContain('private billing detail');
   });
 
   it('uses rules only for projects without saved analysis and names the live failure neutrally', async () => {

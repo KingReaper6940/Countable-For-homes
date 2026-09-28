@@ -12,6 +12,12 @@ type Selection={kind:"record"|"evidence";id:string};
 type DecisionAction="approve_relationship"|"reject_relationship"|"edit_relationship"|"split_relationship"|"merge_relationship"|"approve_claim"|"reject_claim"|"edit_claim"|"reverse_claim"|"edit_event"|"approve_event"|"reject_event"|"reverse_event";
 type SavedAiFinding={permitId:string;quote:string;interpretation:string;reviewQuestion:string};
 type AnalysisView={summary:string;model?:string;analyzedAt?:string;findings?:SavedAiFinding[];limits?:string;warnings:string[]};
+function formatAnalysisTime(value:string){
+  if(/^\d{4}-\d{2}-\d{2}$/.test(value))return formatDate(value);
+  const date=new Date(value);
+  if(Number.isNaN(date.getTime()))return "Time unavailable";
+  return new Intl.DateTimeFormat("en-US",{year:"numeric",month:"short",day:"numeric",hour:"numeric",minute:"2-digit",timeZone:"America/New_York",timeZoneName:"short"}).format(date);
+}
 const showcaseSteps=[
   {title:"One development, many records",body:"Start with the parent application and the building permits. Record count is not a housing unit count."},
   {title:"Start with Building A3",body:"The A3 building permit describes nine apartments. Select its nine-unit claim to see the exact source passage; this is still a permit claim."},
@@ -67,7 +73,7 @@ function ProjectWorkspace(){
     {flash&&<div className={`notice ${flash.includes("failed")||flash.includes("could not")||flash.includes("before")?"error":"info"}`} role="status">{flash}<button className="notice-close" aria-label="Dismiss message" onClick={()=>setFlash("")}>×</button></div>}
     {workspaceStep==="review"&&busy==="analyze"&&<div className="analysis-progress" role="status"><div className="spinner"/><div><strong>{data.mode==="live"?"Running GPT-6 Sol":p.id==="development-10c"?"Opening GPT-6 Sol analysis":"Applying review rules"}</strong><span>Reading the case records and checking source passages…</span></div></div>}
     {workspaceStep==="review"&&analysisView&&<section className="panel saved-ai-panel" aria-label={analysisMode==="rules-only"?"Rules analysis of public records":`${analysisMode==="live"?"Live":"Saved"} GPT-6 Sol analysis of public records`}>
-      <div className="section-top"><div><span className="eyebrow">{analysisMode==="live"?"Live model result":analysisMode==="saved-ai-replay"?"Saved analysis":"Rules analysis"} · {analysisMode==="rules-only"?"Deterministic rules":analysisView.model?.replace(/\s*\(Codex subagent\)/i,"")||"GPT-6 Sol"}{analysisView.analyzedAt?` · ${analysisView.analyzedAt}`:""}</span><h2>{analysisMode==="rules-only"?"What the rules found":"What the model found"}</h2></div><div className="analysis-panel-actions">{analysisMode==="saved-ai-replay"&&data.mode==="live"&&<button className="btn btn-small" onClick={analyze} disabled={!!busy}>Retry live model</button>}<button className="text-button" onClick={()=>setAnalysisView(null)}>Close</button></div></div>
+      <div className="section-top"><div><span className="eyebrow">{analysisMode==="live"?"Live model result":analysisMode==="saved-ai-replay"?"Saved analysis":"Rules analysis"} · {analysisMode==="rules-only"?"Deterministic rules":analysisView.model?.replace(/\s*\(Codex subagent\)/i,"")||"GPT-6 Sol"}{analysisView.analyzedAt?` · ${formatAnalysisTime(analysisView.analyzedAt)}`:""}</span><h2>{analysisMode==="rules-only"?"What the rules found":"What the model found"}</h2></div><div className="analysis-panel-actions">{analysisMode==="saved-ai-replay"&&data.mode==="live"&&<button className="btn btn-small" onClick={analyze} disabled={!!busy}>Retry live model</button>}<button className="text-button" onClick={()=>setAnalysisView(null)}>Close</button></div></div>
       <p>{analysisView.summary}</p>
       <div className="saved-ai-findings">{analysisView.findings?.map((f,i)=><button key={`${f.permitId}:${f.quote}:${i}`} type="button" className="saved-ai-finding" onClick={()=>{const record=data.records.find(r=>r.permitId===f.permitId);if(record){setWorkspaceStep("evidence");setSelection({kind:"record",id:record.id});setSelectedClaim(null);setAnalysisQuote(f.quote);requestAnimationFrame(()=>document.querySelector(".source-reader")?.scrollIntoView({behavior:"smooth",block:"center"}))}}}>
         <strong>{f.permitId} ↗</strong><span>{f.interpretation}</span><small>Source words: “{f.quote}”</small><em>Reviewer question: {f.reviewQuestion}</em>
@@ -155,7 +161,7 @@ function EventReview({
     {data.project.id==="conversion-12k"&&<div className="occupancy-comparison"><strong>Compare the certificates</strong><div className="occupancy-links"><a href="/evidence/south-20th-prior-redacted.pdf" target="_blank" rel="noreferrer">Previous · 1 dwelling ↗</a><a href="/evidence/south-20th-2024-redacted.pdf" target="_blank" rel="noreferrer">New · 2 dwellings ↗</a></div></div>}
     <div className="event-state">
       <span className={"pill " + statusClass[event.status]}>{statusText[event.status]}</span>
-      <span>{event.units === null ? "Increment unknown" : String(event.units) + " " + (event.status === "verified-addition" ? "reviewed" : "proposed") + " addition" + (event.units === 1 ? "" : "s")}</span>
+      <span>{event.units === null ? "Increment unknown" : String(event.units) + " proposed addition" + (event.units === 1 ? "" : "s")}</span>
     </div>
     {event.blockers.length > 0 && <details className="event-blockers"><summary>Review notes <span>{event.blockers.length}</span></summary><ul className="blocker-list">{event.blockers.map((blocker, index) => <li key={index}>{blocker}</li>)}</ul></details>}
     <div className="notice info"><strong>{event.pendingEvidenceId?"New evidence is ready":"Decision pending"}</strong>{!canReview?"Attach occupancy evidence to continue.":"Confirm the document, date and units; complete the six checks and save a reason."}</div>

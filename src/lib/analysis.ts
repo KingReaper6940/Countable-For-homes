@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import OpenAI from 'openai';
+import OpenAI, { APIConnectionError, APIConnectionTimeoutError } from 'openai';
 import { z } from 'zod';
 import { addAudit, getProject, sqlConnection } from './db';
 import { savedAiAnalysis } from './ai-replay';
@@ -19,6 +19,10 @@ const modelOutput = z.object({
   warnings: z.array(z.string().max(400)).max(15),
 });
 type ModelOutput = z.infer<typeof modelOutput>;
+
+class LiveAnalysisError extends Error {
+  constructor(message: string) { super(message); this.name = 'LiveAnalysisError'; }
+}
 
 // The API schema stays deliberately simple; Zod enforces length and numeric limits locally.
 const string = { type: 'string' } as const;
@@ -44,7 +48,7 @@ export function validateLiveOutput(project: ProjectDetail, output: ModelOutput) 
     const record = byPermit.get(item.permitId);
     return !!record && isSourceQuote(record.description, item.quote);
   });
-  if (!findings.length) throw new Error('No source-backed model findings were returned.');
+  if (!findings.length) throw new LiveAnalysisError('The model returned no findings whose quotes match the permit records.');
   const claims = output.claims.filter(item => {
     const record = byPermit.get(item.permitId);
     return !!record && isSourceQuote(record.description, item.quote);
@@ -81,15 +85,19 @@ function fallback(project: ProjectDetail, reason: string) {
 }
 
 function liveFailureReason(error: unknown): string {
+  if (error instanceof LiveAnalysisError) return error.message;
   const status = error && typeof error === 'object' && 'status' in error ? error.status : null;
   const code = error && typeof error === 'object' && 'code' in error ? error.code : null;
   if (status === 401) return 'The OpenAI API key was rejected.';
   if (status === 403) return 'The API key cannot access this model.';
   if (status === 404) return 'GPT-6 Sol is unavailable to this API project.';
+  if (status === 429 && code === 'credit_balance_exhausted') return 'The OpenAI API credit balance is exhausted.';
   if (status === 429 && code === 'insufficient_quota') return 'The OpenAI account has insufficient quota.';
   if (status === 429 && code === 'rate_limit_exceeded') return 'The OpenAI rate limit was reached.';
   if (status === 429) return 'OpenAI returned 429 (rate limit or account quota).';
-  if (error instanceof Error && (error.name === 'APIConnectionError' || error.name === 'APIConnectionTimeoutError')) return 'The live model connection failed.';
+  if (error instanceof APIConnectionError || error instanceof APIConnectionTimeoutError ||
+    (error instanceof Error && (error.constructor.name === 'APIConnectionError' || error.constructor.name === 'APIConnectionTimeoutError')))
+    return 'The live model connection failed. Check network access and retry.';
   if (typeof status === 'number') return 'The live model service could not complete the request.';
   return 'Live model output could not be verified.';
 }
@@ -102,8 +110,22 @@ async function requestLiveAnalysis(project: ProjectDetail): Promise<ModelOutput>
     input: JSON.stringify({ projectId: project.project.id, records: project.records.map(record => ({ permitId: record.permitId, type: record.type, description: record.description, workType: record.workType, status: record.status, issueDate: record.issueDate, buildingLabel: record.buildingLabel })) }),
     text: { format: { type: 'json_schema', name: 'countable_analysis', strict: true, schema } },
   });
-  if (response.status !== 'completed' || !response.output_text) throw new Error('Model did not complete an analysis.');
-  return modelOutput.parse(JSON.parse(response.output_text));
+  if (response.status !== 'completed') {
+    const detail = response.incomplete_details?.reason;
+    throw new LiveAnalysisError(detail === 'max_output_tokens'
+      ? 'The model reached its output limit before completing the analysis.'
+      : `The model response did not complete (${response.status}).`);
+  }
+  if (!response.output_text) throw new LiveAnalysisError('The model completed without returning analysis text.');
+  let parsed: unknown;
+  try { parsed = JSON.parse(response.output_text); }
+  catch { throw new LiveAnalysisError('The model returned analysis that was not valid JSON.'); }
+  const checked = modelOutput.safeParse(parsed);
+  if (!checked.success) {
+    const fields = [...new Set(checked.error.issues.map(issue => String(issue.path[0] ?? 'root')))].join(', ');
+    throw new LiveAnalysisError(`The model response failed validation in: ${fields}.`);
+  }
+  return checked.data;
 }
 
 export async function analyzeProject(projectId: string) {
@@ -117,6 +139,20 @@ export async function analyzeProject(projectId: string) {
     output = await requestLiveAnalysis(current);
     validated = validateLiveOutput(current, output);
   } catch (error) {
+    if (process.env.COUNTABLE_DEBUG_LIVE === '1') {
+      const diagnostic = error && typeof error === 'object' ? error as Record<string, unknown> : {};
+      console.warn('Countable live diagnostic', {
+        type: error instanceof Error ? error.constructor.name : typeof error,
+        name: error instanceof Error ? error.name : undefined,
+        status: diagnostic.status,
+        code: diagnostic.code,
+        cause: diagnostic.cause && typeof diagnostic.cause === 'object' ? {
+          type: (diagnostic.cause as Error).constructor.name,
+          code: (diagnostic.cause as Record<string, unknown>).code,
+        } : undefined,
+        reason: error instanceof LiveAnalysisError ? error.message : undefined,
+      });
+    }
     return fallback(current, liveFailureReason(error));
   }
 
