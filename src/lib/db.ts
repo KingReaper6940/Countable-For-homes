@@ -224,12 +224,12 @@ export function getProject(id:string): ProjectDetail | null {
   else if (id==='cohort-conversion') claimSummary=`${claim('existing')??'Unknown'}-to-${claim('resulting')??'unknown'} conversion described; completed loss unverified`;
   else if (id==='cohort-revoked') claimSummary=`${claim('resulting')??'Unknown'}-unit change of use proposed; application revoked`;
   const summary:ProjectSummary={id,scope:p.scope as Scope,name:String(p.name),subtitle:String(p.subtitle),parcel:String(p.parcel),address:records[0]?.address??String(p.address),recordCount:records.length,claimSummary,reviewStatus:verified.length ? 'verified-addition' : events[0]?.status ?? 'unresolved',unresolved,verifiedUnits:verified.length ? verified.reduce((n,e)=>n+(e.units??0),0) : null};
-  return {project:summary,records,claims,relationships,evidence,events,audit,mode:process.env.OPENAI_API_KEY ? 'live':'rules-only'};
+  return {project:summary,records,claims,relationships,evidence,events,audit,mode:process.env.OPENAI_API_KEY?.trim() ? 'live':'rules-only'};
 }
 
 export function listProjects() {
   const ids=(db().prepare("SELECT id FROM projects WHERE scope='real' ORDER BY id").all() as {id:string}[]).map(x=>x.id);
-  return {projects:ids.map(id=>getProject(id)!.project),coverage:getCoverage(),mode:process.env.OPENAI_API_KEY ? 'live' as const : 'rules-only' as const};
+  return {projects:ids.map(id=>getProject(id)!.project),coverage:getCoverage(),mode:process.env.OPENAI_API_KEY?.trim() ? 'live' as const : 'rules-only' as const};
 }
 
 export function findEvidence(id:string): {projectId:string;evidence:Evidence}|null {
